@@ -19,10 +19,3 @@ sealed class ApiError {
         val message: String
     ): ApiError()
 }
-//data class ApiError(
-//    val timestamp: Long = System.currentTimeMillis(),
-//    val status: HttpStatus,
-//    val message: String
-//){
-//    constructor(timestamp: Long = System.currentTimeMillis(), status: HttpStatus = HttpStatus.BAD_REQUEST, message: String = "") : this()
-//}
