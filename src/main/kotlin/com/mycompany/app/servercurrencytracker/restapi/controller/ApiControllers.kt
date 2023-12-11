@@ -1,6 +1,7 @@
 package com.mycompany.app.servercurrencytracker.restapi.controller
 
 import ApiError
+import com.mycompany.app.servercurrencytracker.restapi.models.Convert
 import com.mycompany.app.servercurrencytracker.restapi.models.CurrencyName
 import com.mycompany.app.servercurrencytracker.restapi.models.Rate
 import com.mycompany.app.servercurrencytracker.restapi.repositories.CurrencyNameRepository
@@ -17,6 +18,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import kotlin.time.Duration.Companion.seconds
 
 @RestController
 class ApiControllers(
@@ -34,7 +36,7 @@ class ApiControllers(
 
     @GetMapping(value = ["/latest/{symbol}"])
     fun getRatesBySymbol(@PathVariable symbol: String): ResponseEntity<*> {
-        val rates: List<Rate>? = ratesRepository.findRateBySymbol(symbol)
+        val rates: Rate? = ratesRepository.findRateBySymbol(symbol)
         return if (rates != null) {
             ResponseEntity.ok(rates)
         } else {
@@ -42,6 +44,51 @@ class ApiControllers(
             ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiError.NotFound(System.currentTimeMillis(), HttpStatus.NOT_FOUND, errorMessage))
         }
+    }
+
+    @GetMapping(value = ["/convert"])
+    fun convert(
+        @RequestParam(required = true) value: Double?,
+        @RequestParam(required = true) from: String?,
+        @RequestParam(required = true) to: String?,
+    ): ResponseEntity<*>? {
+        if (value == null || from == null || to == null)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(
+                    ApiError.BadRequest(
+                        System.currentTimeMillis(),
+                        HttpStatus.BAD_REQUEST,
+                        "Some value is null"
+                    )
+                )
+        val fromRate = ratesRepository.findRateBySymbol(from)
+        val timestamp = fromRate?.timestamp
+        val rateFrom =
+            fromRate?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(
+                    ApiError.BadRequest(
+                        System.currentTimeMillis(),
+                        HttpStatus.BAD_REQUEST,
+                        "\"From\" is inncorect"
+                    )
+                )
+        val rateTo =
+            ratesRepository.findRateBySymbol(to)?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(
+                    ApiError.BadRequest(
+                        System.currentTimeMillis(),
+                        HttpStatus.BAD_REQUEST,
+                        "\"To\" is inncorect"
+                    )
+                )
+
+        val rate = rateTo/rateFrom
+        val response = rate * value
+
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(
+               Convert(timestamp!!, rate, response)
+            )
     }
 
     @GetMapping(value = ["/historical/{date}"])
@@ -116,7 +163,8 @@ class ApiControllers(
     }
 
     @GetMapping(value = ["/currencies"])
-    fun getCurrencies(@RequestParam(required = false) symbol: String? = null) = currenciesRepository.findCurrencyBySymbol(symbol)
+    fun getCurrencies(@RequestParam(required = false) symbol: String? = null) =
+        currenciesRepository.findCurrencyBySymbol(symbol)
 
     @GetMapping(value = ["/error"])
     fun getError() = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiError.Unexpected())
