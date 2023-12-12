@@ -94,7 +94,7 @@ class ApiControllers(
     @GetMapping(value = ["/historical/{date}"])
     fun getRatesByDate(
         @PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") date: String,
-        @RequestParam(required = false) symbol: String?
+        @RequestParam(required = false) symbol: String? = null
     ): ResponseEntity<*> {
         val dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy").withZone(ZoneId.systemDefault())
         try {
@@ -129,7 +129,7 @@ class ApiControllers(
     fun getTimeSeries(
         @RequestParam @DateTimeFormat(pattern = "dd-MM-yyyy") startDate: String,
         @RequestParam @DateTimeFormat(pattern = "dd-MM-yyyy") endDate: String,
-        @RequestParam(required = false) symbol: String?
+        @RequestParam(required = false) symbol: String? = null
     ): ResponseEntity<*> {
         val dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy").withZone(ZoneId.systemDefault())
         try {
