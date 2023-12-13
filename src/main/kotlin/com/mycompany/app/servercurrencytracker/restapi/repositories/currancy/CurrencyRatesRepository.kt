@@ -1,6 +1,6 @@
-package com.mycompany.app.servercurrencytracker.restapi.repositories
+package com.mycompany.app.servercurrencytracker.restapi.repositories.currancy
 
-import com.mycompany.app.servercurrencytracker.restapi.models.CurrencyRate
+import com.mycompany.app.servercurrencytracker.restapi.models.currancy.CurrencyRate
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 

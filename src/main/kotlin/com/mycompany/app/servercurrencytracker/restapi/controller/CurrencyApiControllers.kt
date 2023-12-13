@@ -2,8 +2,8 @@ package com.mycompany.app.servercurrencytracker.restapi.controller
 
 import ApiError
 import com.mycompany.app.servercurrencytracker.restapi.models.Convert
-import com.mycompany.app.servercurrencytracker.restapi.models.CurrencyRate
-import com.mycompany.app.servercurrencytracker.restapi.repositories.CurrencyRatesRepository
+import com.mycompany.app.servercurrencytracker.restapi.models.currancy.CurrencyRate
+import com.mycompany.app.servercurrencytracker.restapi.repositories.currancy.CurrencyRatesRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
@@ -18,7 +18,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
 @RestController
-class ApiControllers(
+class CurrencyApiControllers(
     @Autowired
     private val currencyRatesRepository: CurrencyRatesRepository
 ) {

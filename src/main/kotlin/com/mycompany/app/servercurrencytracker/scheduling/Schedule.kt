@@ -1,11 +1,13 @@
 package com.mycompany.app.servercurrencytracker.scheduling
 
 import com.mycompany.app.servercurrencytracker.Const
+import com.mycompany.app.servercurrencytracker.receiving.sources.GeckoApi
 import com.mycompany.app.servercurrencytracker.receiving.sources.OpenExchangeRatesApi
-import com.mycompany.app.servercurrencytracker.restapi.models.toCurrenciesName
+import com.mycompany.app.servercurrencytracker.restapi.models.currancy.toCurrenciesName
 import com.mycompany.app.servercurrencytracker.restapi.models.toRate
-import com.mycompany.app.servercurrencytracker.restapi.repositories.CurrencyNameRepository
+import com.mycompany.app.servercurrencytracker.restapi.repositories.currancy.CurrencyNameRepository
 import com.mycompany.app.servercurrencytracker.restapi.repositories.RatesRepository
+import com.mycompany.app.servercurrencytracker.restapi.repositories.crypto.CryptoCurrancyRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Configuration
@@ -27,13 +29,21 @@ class Jobs(
     @Autowired
     val ratesRepository: RatesRepository,
     @Autowired
-    val currenciesRepository: CurrencyNameRepository
+    val currenciesRepository: CurrencyNameRepository,
+    @Autowired
+    val cryptoRepository: CryptoCurrancyRepository
 ) {
     val openExchangeRatesApi = Retrofit.Builder()
         .baseUrl(Const.OPEN_EXCHANGE_RATES_API_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
         .create(OpenExchangeRatesApi::class.java)
+    val geckoApi = Retrofit.Builder()
+        .baseUrl(Const.GECKO_API_URL)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+        .create(GeckoApi::class.java)
+
     @Scheduled(cron = "\${getAndPutCurrancyNames.delay}")
     fun getAndPutCurrancyNames() {
         val currenciesName = openExchangeRatesApi.getCurrenciesName().execute()
@@ -46,8 +56,12 @@ class Jobs(
         println("Get Currency Rates and Put at ${Date()}")
         ratesRepository.saveAll(currenciesName.body()!!.toRate())
     }
-    @Scheduled(cron = "0 */5 * * * *")
-    fun test(){
-        println("Scheduled on")
+    @Scheduled(cron = "\${getAndPutCrypto.delay}")
+    fun getAndPutCrypto(){
+        val cryptoResponse = geckoApi.getCoins("USD").execute()
+        val cryptoList = cryptoResponse.body()!!
+        println("Get Crypto Rates and Put at ${Date()}")
+        cryptoRepository.saveAll(cryptoList.map { it.toCryptoDetails() })
+
     }
 }

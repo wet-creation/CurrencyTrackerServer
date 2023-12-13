@@ -1,4 +1,4 @@
-package com.mycompany.app.servercurrencytracker.receiving.dto
+package com.mycompany.app.servercurrencytracker.receiving.dto.fiat
 
 data class Latest(
     val base: String,

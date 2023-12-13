@@ -1,6 +1,6 @@
 package com.mycompany.app.servercurrencytracker.restapi.models
 
-import com.mycompany.app.servercurrencytracker.receiving.dto.Latest
+import com.mycompany.app.servercurrencytracker.receiving.dto.fiat.Latest
 import jakarta.persistence.*
 
 
@@ -12,11 +12,12 @@ data class Rate(
     val timestamp: Long,
     @Column
     val rate: Double
-){
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0
-    constructor(): this("USD", 0, 1.0)
+
+    constructor() : this("USD", 0, 1.0)
 }
 
 fun Latest.toRate(): List<Rate> {
@@ -33,4 +34,5 @@ fun Latest.toRate(): List<Rate> {
 
     return ratesList
 }
+
 

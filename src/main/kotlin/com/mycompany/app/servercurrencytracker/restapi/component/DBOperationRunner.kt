@@ -1,7 +1,10 @@
 package com.mycompany.app.servercurrencytracker.restapi.component
 
 import com.mycompany.app.servercurrencytracker.Const
-import com.mycompany.app.servercurrencytracker.receiving.sources.OpenExchangeRatesApi
+import com.mycompany.app.servercurrencytracker.receiving.sources.GeckoApi
+import com.mycompany.app.servercurrencytracker.restapi.repositories.RatesRepository
+import com.mycompany.app.servercurrencytracker.restapi.repositories.crypto.CryptoCurrancyRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
 import retrofit2.Retrofit
@@ -9,15 +12,33 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 @Component
 class DBOperationRunner(
+    @Autowired
+    val cryptoCurrancyRepository: CryptoCurrancyRepository,
+    @Autowired
+    val ratesRep: RatesRepository
 ) : CommandLineRunner {
 
     override fun run(vararg args: String?) {
-        val openExchangeRatesApi = Retrofit.Builder()
-            .baseUrl(Const.OPEN_EXCHANGE_RATES_API_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(OpenExchangeRatesApi::class.java)
-        val currenciesName = openExchangeRatesApi.getCurrenciesName().execute()
+//        val geckoApi = Retrofit.Builder()
+//            .baseUrl(Const.GECKO_API_URL)
+//            .addConverterFactory(GsonConverterFactory.create())
+//            .build()
+//            .create(GeckoApi::class.java)
+//        val cryptoResponse = geckoApi.getCoins("USD").execute()
+//        val cryptoList = cryptoResponse.body()!!
+//        cryptoCurrancyRepository.saveAll(cryptoList.map { it.toCryptoDetails() })
+
+//        val cryptoResponseList = coinPaprikaApi.getCoins().execute().body()!!
+//        for (index in 28..100) {
+//            val cryptoResponse = cryptoResponseList[index]
+//            val response = coinPaprikaApi.getCoin(cryptoResponse.id).execute()
+//            println(response.raw())
+//            val cryptoResponseDetails = response.body()!!
+//            cryptoCurrancyRepository.save(cryptoResponseDetails.toCryptoCurrancy())
+
+
+        //------------------------
+
         //currenciesRepository.saveAll(currenciesName.body()!!.toCurrenciesName())
 
         // val latest = openExchangeRatesApi.getCurrenciesLatest()

@@ -1,4 +1,4 @@
-package com.mycompany.app.servercurrencytracker.restapi.models
+package com.mycompany.app.servercurrencytracker.restapi.models.currancy
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

@@ -1,6 +1,6 @@
 package com.mycompany.app.servercurrencytracker
 
-import com.mycompany.app.servercurrencytracker.receiving.dto.Latest
+import com.mycompany.app.servercurrencytracker.receiving.dto.fiat.Latest
 import com.mycompany.app.servercurrencytracker.restapi.models.toRate
 
 fun main() {

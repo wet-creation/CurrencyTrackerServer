@@ -1,6 +1,6 @@
-package com.mycompany.app.servercurrencytracker.restapi.models
+package com.mycompany.app.servercurrencytracker.restapi.models.currancy
 
-import com.mycompany.app.servercurrencytracker.receiving.dto.CurrenciesResponse
+import com.mycompany.app.servercurrencytracker.receiving.dto.fiat.CurrenciesResponse
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id

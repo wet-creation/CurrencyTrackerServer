@@ -1,8 +1,8 @@
 package com.mycompany.app.servercurrencytracker.receiving.sources
 
 import com.mycompany.app.servercurrencytracker.Const
-import com.mycompany.app.servercurrencytracker.receiving.dto.CurrenciesResponse
-import com.mycompany.app.servercurrencytracker.receiving.dto.Latest
+import com.mycompany.app.servercurrencytracker.receiving.dto.fiat.CurrenciesResponse
+import com.mycompany.app.servercurrencytracker.receiving.dto.fiat.Latest
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
