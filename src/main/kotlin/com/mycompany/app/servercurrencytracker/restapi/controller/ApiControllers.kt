@@ -2,10 +2,8 @@ package com.mycompany.app.servercurrencytracker.restapi.controller
 
 import ApiError
 import com.mycompany.app.servercurrencytracker.restapi.models.Convert
-import com.mycompany.app.servercurrencytracker.restapi.models.CurrencyName
-import com.mycompany.app.servercurrencytracker.restapi.models.Rate
-import com.mycompany.app.servercurrencytracker.restapi.repositories.CurrencyNameRepository
-import com.mycompany.app.servercurrencytracker.restapi.repositories.RatesRepository
+import com.mycompany.app.servercurrencytracker.restapi.models.CurrencyRate
+import com.mycompany.app.servercurrencytracker.restapi.repositories.CurrencyRatesRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
@@ -15,28 +13,25 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import kotlin.time.Duration.Companion.seconds
 
 @RestController
 class ApiControllers(
     @Autowired
-    private val ratesRepository: RatesRepository,
-    @Autowired
-    private val currenciesRepository: CurrencyNameRepository
+    private val currencyRatesRepository: CurrencyRatesRepository
 ) {
 
     @GetMapping(value = ["/"])
     fun getPages() = "Welcome"
 
     @GetMapping(value = ["/latest"])
-    fun getRates() = ratesRepository.findLatestRate()
+    fun getRates() = currencyRatesRepository.findLatestRate()
 
     @GetMapping(value = ["/latest/{symbol}"])
     fun getRatesBySymbol(@PathVariable symbol: String): ResponseEntity<*> {
-        val rates: Rate? = ratesRepository.findRateBySymbol(symbol)
+        val rates: CurrencyRate? = currencyRatesRepository.findRateBySymbol(symbol)
         return if (rates != null) {
             ResponseEntity.ok(rates)
         } else {
@@ -61,10 +56,9 @@ class ApiControllers(
                         "Some value is null"
                     )
                 )
-        val fromRate = ratesRepository.findRateBySymbol(from)
-        val timestamp = fromRate?.timestamp
+        val timestamp =  currencyRatesRepository.findRateBySymbol(from)?.timestamp
         val rateFrom =
-            fromRate?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            currencyRatesRepository.findRateBySymbol(from)?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(
                     ApiError.BadRequest(
                         System.currentTimeMillis(),
@@ -73,7 +67,7 @@ class ApiControllers(
                     )
                 )
         val rateTo =
-            ratesRepository.findRateBySymbol(to)?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            currencyRatesRepository.findRateBySymbol(to)?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(
                     ApiError.BadRequest(
                         System.currentTimeMillis(),
@@ -96,11 +90,11 @@ class ApiControllers(
         @PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") date: String,
         @RequestParam(required = false) symbol: String? = null
     ): ResponseEntity<*> {
-        val dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy").withZone(ZoneId.systemDefault())
+        val dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy")
         try {
             val parsed = LocalDate.parse(date, dateFormat)
-            val timestamp = parsed.atStartOfDay(ZoneId.systemDefault()).toInstant().epochSecond
-            val rates: List<Rate>? = ratesRepository.findRateByDate(timestamp, symbol)
+            val timestamp = parsed.atStartOfDay().toInstant(ZoneOffset.UTC).epochSecond
+            val rates: List<CurrencyRate>? = currencyRatesRepository.findRateByDate(timestamp, symbol)
             return if (rates != null) {
                 ResponseEntity.ok(rates)
             } else {
@@ -131,13 +125,13 @@ class ApiControllers(
         @RequestParam @DateTimeFormat(pattern = "dd-MM-yyyy") endDate: String,
         @RequestParam(required = false) symbol: String? = null
     ): ResponseEntity<*> {
-        val dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy").withZone(ZoneId.systemDefault())
+        val dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy")
         try {
             val parsedStart = LocalDate.parse(startDate, dateFormat)
             val parsedEnd = LocalDate.parse(endDate, dateFormat)
-            val timestampStart = parsedStart.atStartOfDay(ZoneId.systemDefault()).toInstant().epochSecond
-            val timestampEnd = parsedEnd.atStartOfDay(ZoneId.systemDefault()).toInstant().epochSecond
-            val rates: List<Rate>? = ratesRepository.findRateByRangeDate(timestampStart, timestampEnd, symbol)
+            val timestampStart = parsedStart.atStartOfDay().toInstant(ZoneOffset.UTC).epochSecond
+            val timestampEnd = parsedEnd.atStartOfDay().toInstant(ZoneOffset.UTC).epochSecond
+            val rates: List<CurrencyRate>? = currencyRatesRepository.findRateByRangeDate(timestampStart, timestampEnd, symbol)
             return if (rates != null) {
                 ResponseEntity.ok(rates)
             } else {
@@ -162,10 +156,7 @@ class ApiControllers(
         }
     }
 
-    @GetMapping(value = ["/currencies"])
-    fun getCurrencies(@RequestParam(required = false) symbol: String? = null) =
-        currenciesRepository.findCurrencyBySymbol(symbol)
-
     @GetMapping(value = ["/error"])
     fun getError() = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiError.Unexpected())
+
 }

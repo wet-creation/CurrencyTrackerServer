@@ -1,13 +1,7 @@
 package com.mycompany.app.servercurrencytracker.restapi.component
 
 import com.mycompany.app.servercurrencytracker.Const
-import com.mycompany.app.servercurrencytracker.receiving.dto.Latest
 import com.mycompany.app.servercurrencytracker.receiving.sources.OpenExchangeRatesApi
-import com.mycompany.app.servercurrencytracker.restapi.models.toCurrenciesName
-import com.mycompany.app.servercurrencytracker.restapi.models.toRate
-import com.mycompany.app.servercurrencytracker.restapi.repositories.CurrencyNameRepository
-import com.mycompany.app.servercurrencytracker.restapi.repositories.RatesRepository
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
 import retrofit2.Retrofit
@@ -15,10 +9,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 @Component
 class DBOperationRunner(
-    @Autowired
-    val ratesRepository: RatesRepository,
-    @Autowired
-    val currenciesRepository: CurrencyNameRepository
 ) : CommandLineRunner {
 
     override fun run(vararg args: String?) {
@@ -28,7 +18,7 @@ class DBOperationRunner(
             .build()
             .create(OpenExchangeRatesApi::class.java)
         val currenciesName = openExchangeRatesApi.getCurrenciesName().execute()
-        currenciesRepository.saveAll(currenciesName.body()!!.toCurrenciesName())
+        //currenciesRepository.saveAll(currenciesName.body()!!.toCurrenciesName())
 
         // val latest = openExchangeRatesApi.getCurrenciesLatest()
         // ratesRepository.saveAll(latest.execute().body()!!.toRatesModelList())

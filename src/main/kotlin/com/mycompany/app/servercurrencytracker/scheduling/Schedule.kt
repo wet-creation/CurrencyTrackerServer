@@ -14,12 +14,13 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.*
 
 
 @Configuration
 @EnableScheduling
 @ConditionalOnProperty(name = ["scheluding.enabled"], matchIfMissing = true)
-class Schedule ()
+class Schedule
 
 @Component
 class Jobs(
@@ -36,16 +37,16 @@ class Jobs(
     @Scheduled(cron = "\${getAndPutCurrancyNames.delay}")
     fun getAndPutCurrancyNames() {
         val currenciesName = openExchangeRatesApi.getCurrenciesName().execute()
-        println(currenciesName.body().toString())
+        "Get Currency Names at ${Date()}"
         currenciesRepository.saveAll(currenciesName.body()!!.toCurrenciesName())
     }
     @Scheduled(cron = "\${getAndPutRates.delay}")
     fun getAndPutRates() {
         val currenciesName = openExchangeRatesApi.getCurrenciesLatest().execute()
-        println(currenciesName.body().toString())
+        println("Get Currency Rates and Put at ${Date()}")
         ratesRepository.saveAll(currenciesName.body()!!.toRate())
     }
-    @Scheduled(cron = "* * * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     fun test(){
         println("Scheduled on")
     }
