@@ -52,9 +52,12 @@ class Jobs(
     }
     @Scheduled(cron = "\${getAndPutRates.delay}")
     fun getAndPutRates() {
-        val currenciesName = openExchangeRatesApi.getCurrenciesLatest().execute()
+        val currenciesResponse = openExchangeRatesApi.getCurrenciesLatest().execute()
+        val currencies = currenciesResponse.body()!!
+        val modifiedRates = currencies.rates.mapValues { (_, value) -> 1.0 / value }
+        val modifiedLatest = currencies.copy(rates = modifiedRates)
         println("Get Currency Rates and Put at ${Date()}")
-        ratesRepository.saveAll(currenciesName.body()!!.toRate())
+        ratesRepository.saveAll(modifiedLatest.toRate())
     }
     @Scheduled(cron = "\${getAndPutCrypto.delay}")
     fun getAndPutCrypto(){

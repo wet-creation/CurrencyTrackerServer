@@ -30,9 +30,10 @@ class ConvertOperationApiController(
                         "Some value is null"
                     )
                 )
-        val timestamp =  cryptoFiatRateRepository.findLastRate(from)?.timestamp
+        val lastRateFrom = cryptoFiatRateRepository.findLastRate(from)
+        val lastRateTo = cryptoFiatRateRepository.findLastRate(to)
         val rateFrom =
-            cryptoFiatRateRepository.findLastRate(from)?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            lastRateFrom?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(
                     ApiError.BadRequest(
                         System.currentTimeMillis(),
@@ -41,7 +42,7 @@ class ConvertOperationApiController(
                     )
                 )
         val rateTo =
-            cryptoFiatRateRepository.findLastRate(to)?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            lastRateTo?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(
                     ApiError.BadRequest(
                         System.currentTimeMillis(),
@@ -49,13 +50,13 @@ class ConvertOperationApiController(
                         "\"To\" is inncorect"
                     )
                 )
-
-        val rate = rateFrom/rateTo
+        val timestamp = if (lastRateTo.timestamp > lastRateFrom.rate) lastRateTo.timestamp else lastRateFrom.timestamp
+        val rate = rateFrom / rateTo
         val response = rate * value
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(
-                Convert(timestamp!!, rate, response)
+                Convert(timestamp, rate, response)
             )
     }
 }
