@@ -1,4 +1,4 @@
-package com.mycompany.app.servercurrencytracker.restapi.models
+package com.mycompany.app.servercurrencytracker.restapi.models.currancy
 
 import com.mycompany.app.servercurrencytracker.receiving.dto.fiat.Latest
 import jakarta.persistence.*

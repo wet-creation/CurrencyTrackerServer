@@ -1,7 +1,6 @@
 package com.mycompany.app.servercurrencytracker.restapi.controller
 
 import ApiError
-import com.mycompany.app.servercurrencytracker.restapi.models.Convert
 import com.mycompany.app.servercurrencytracker.restapi.models.currancy.CurrencyRate
 import com.mycompany.app.servercurrencytracker.restapi.repositories.currancy.CurrencyRatesRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,50 +38,6 @@ class CurrencyApiControllers(
             ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiError.NotFound(System.currentTimeMillis(), HttpStatus.NOT_FOUND, errorMessage))
         }
-    }
-
-    @GetMapping(value = ["/convert"])
-    fun convert(
-        @RequestParam(required = true) value: Double?,
-        @RequestParam(required = true) from: String?,
-        @RequestParam(required = true) to: String?,
-    ): ResponseEntity<*>? {
-        if (value == null || from == null || to == null)
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                    ApiError.BadRequest(
-                        System.currentTimeMillis(),
-                        HttpStatus.BAD_REQUEST,
-                        "Some value is null"
-                    )
-                )
-        val timestamp =  currencyRatesRepository.findRateBySymbol(from)?.timestamp
-        val rateFrom =
-            currencyRatesRepository.findRateBySymbol(from)?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                    ApiError.BadRequest(
-                        System.currentTimeMillis(),
-                        HttpStatus.BAD_REQUEST,
-                        "\"From\" is inncorect"
-                    )
-                )
-        val rateTo =
-            currencyRatesRepository.findRateBySymbol(to)?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                    ApiError.BadRequest(
-                        System.currentTimeMillis(),
-                        HttpStatus.BAD_REQUEST,
-                        "\"To\" is inncorect"
-                    )
-                )
-
-        val rate = rateTo/rateFrom
-        val response = rate * value
-
-        return ResponseEntity.status(HttpStatus.OK)
-            .body(
-               Convert(timestamp!!, rate, response)
-            )
     }
 
     @GetMapping(value = ["/historical/{date}"])

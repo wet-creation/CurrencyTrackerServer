@@ -1,14 +1,10 @@
 package com.mycompany.app.servercurrencytracker.restapi.component
 
-import com.mycompany.app.servercurrencytracker.Const
-import com.mycompany.app.servercurrencytracker.receiving.sources.GeckoApi
-import com.mycompany.app.servercurrencytracker.restapi.repositories.RatesRepository
+import com.mycompany.app.servercurrencytracker.restapi.repositories.currancy.RatesRepository
 import com.mycompany.app.servercurrencytracker.restapi.repositories.crypto.CryptoCurrancyRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 @Component
 class DBOperationRunner(
