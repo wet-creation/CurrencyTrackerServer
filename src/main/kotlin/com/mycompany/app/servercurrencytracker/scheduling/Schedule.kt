@@ -4,9 +4,9 @@ import com.mycompany.app.servercurrencytracker.Const
 import com.mycompany.app.servercurrencytracker.receiving.sources.GeckoApi
 import com.mycompany.app.servercurrencytracker.receiving.sources.OpenExchangeRatesApi
 import com.mycompany.app.servercurrencytracker.restapi.models.currancy.toCurrenciesName
-import com.mycompany.app.servercurrencytracker.restapi.models.toRate
+import com.mycompany.app.servercurrencytracker.restapi.models.currancy.toRate
 import com.mycompany.app.servercurrencytracker.restapi.repositories.currancy.CurrencyNameRepository
-import com.mycompany.app.servercurrencytracker.restapi.repositories.RatesRepository
+import com.mycompany.app.servercurrencytracker.restapi.repositories.currancy.RatesRepository
 import com.mycompany.app.servercurrencytracker.restapi.repositories.crypto.CryptoCurrancyRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

@@ -1,7 +1,7 @@
 package com.mycompany.app.servercurrencytracker
 
 import com.mycompany.app.servercurrencytracker.receiving.dto.fiat.Latest
-import com.mycompany.app.servercurrencytracker.restapi.models.toRate
+import com.mycompany.app.servercurrencytracker.restapi.models.currancy.toRate
 
 fun main() {
     val ratesMap = mapOf(

@@ -1,7 +1,6 @@
 package com.mycompany.app.servercurrencytracker.receiving.dto.crypto
 
 import com.mycompany.app.servercurrencytracker.restapi.models.crypto.Crypto
-import com.mycompany.app.servercurrencytracker.restapi.models.toRate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
