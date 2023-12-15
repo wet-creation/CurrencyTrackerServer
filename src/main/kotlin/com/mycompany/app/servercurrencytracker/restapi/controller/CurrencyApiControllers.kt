@@ -2,6 +2,7 @@ package com.mycompany.app.servercurrencytracker.restapi.controller
 
 import ApiError
 import com.mycompany.app.servercurrencytracker.restapi.models.currancy.CurrencyRate
+import com.mycompany.app.servercurrencytracker.restapi.repositories.CryptoFiatRepository
 import com.mycompany.app.servercurrencytracker.restapi.repositories.currancy.CurrencyRatesRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.format.annotation.DateTimeFormat
@@ -19,7 +20,9 @@ import java.time.format.DateTimeParseException
 @RestController
 class CurrencyApiControllers(
     @Autowired
-    private val currencyRatesRepository: CurrencyRatesRepository
+    private val currencyRatesRepository: CurrencyRatesRepository,
+    @Autowired
+    private val cryptoFiatRepository: CryptoFiatRepository
 ) {
 
     @GetMapping(value = ["/"])
@@ -45,7 +48,7 @@ class CurrencyApiControllers(
         @RequestParam(required = false) baseCurrency: String = "USD"
     ): ResponseEntity<*> {
         val rate: CurrencyRate? = currencyRatesRepository.findRateBySymbol(symbol)
-        val rateBase = currencyRatesRepository.findRateBySymbol(baseCurrency)
+        val rateBase = cryptoFiatRepository.findLastRate(baseCurrency)
         return if (rate != null && rateBase != null) {
             val currencyRate = rate.rate / rateBase.rate
             val convertRate = rate.copy(rate = currencyRate)
@@ -139,7 +142,7 @@ class CurrencyApiControllers(
     fun getError() = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiError.Unexpected())
 
     fun getBaseCurrancyList(currancyList: List<CurrencyRate>?, baseCurrancy: String): List<CurrencyRate>? {
-        val baseRateCurrancy = currencyRatesRepository.findRateBySymbol(baseCurrancy) ?: return null
+        val baseRateCurrancy = cryptoFiatRepository.findLastRate(baseCurrancy) ?: return null
         val listBaseCurranies = mutableListOf<CurrencyRate>()
         currancyList?.forEach { currency ->
             val currencyRate = currency.rate / baseRateCurrancy.rate

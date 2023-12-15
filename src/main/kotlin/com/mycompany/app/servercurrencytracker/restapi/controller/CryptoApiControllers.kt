@@ -1,6 +1,7 @@
 package com.mycompany.app.servercurrencytracker.restapi.controller
 
 import com.mycompany.app.servercurrencytracker.restapi.models.crypto.Crypto
+import com.mycompany.app.servercurrencytracker.restapi.repositories.CryptoFiatRepository
 import com.mycompany.app.servercurrencytracker.restapi.repositories.crypto.CryptoCurrancyRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.format.annotation.DateTimeFormat
@@ -18,10 +19,12 @@ import java.time.format.DateTimeParseException
 @RestController
 class CryptoApiControllers(
     @Autowired
-    val cryptoCurrancyRepository: CryptoCurrancyRepository
+    val cryptoCurrancyRepository: CryptoCurrancyRepository,
+    @Autowired
+    val cryptoFiatRepository: CryptoFiatRepository
 ) {
     @GetMapping(value = ["/latest/crypto"])
-    fun getCryptos(@RequestParam(required = false) isBaseCrypto: Boolean = false): ResponseEntity<*> {
+    fun getCryptos(@RequestParam(required = false) baseCurrency: String = "USD"): ResponseEntity<*> {
         val cryptoList = cryptoCurrancyRepository.findLatest()?.sortedBy { it.market_cap_rank }?.subList(0, 100)
             ?: return ResponseEntity.status(
                 HttpStatus.INTERNAL_SERVER_ERROR
@@ -29,17 +32,17 @@ class CryptoApiControllers(
                 .body(
                     ApiError.InternalServerError()
                 )
-        return if (isBaseCrypto)
-            ResponseEntity.ok(getBaseCrypto(cryptoList))
+        return if (baseCurrency != "USD")
+            ResponseEntity.ok(getBaseCrypto(cryptoList, baseCurrency))
         else
             ResponseEntity.ok(cryptoList)
     }
 
-    private fun getBaseCrypto(cryptoList: List<Crypto>): List<Crypto>? {
-        val base = cryptoCurrancyRepository.findLatest()?.find { it.symbol == "btc" } ?: return null
+    private fun getBaseCrypto(cryptoList: List<Crypto>, baseCurrency: String): List<Crypto>? {
+        val base = cryptoFiatRepository.findLastRate(baseCurrency) ?: return null
         val baseList = mutableListOf<Crypto>()
         cryptoList.forEach { crypto ->
-            val baseRate = crypto.current_price / base.current_price
+            val baseRate = crypto.current_price / base.rate
             val baserCrypto = crypto.copy(current_price = baseRate)
             baserCrypto.id = crypto.id
             baseList.add(baserCrypto)
@@ -50,7 +53,7 @@ class CryptoApiControllers(
     @GetMapping(value = ["/latest/crypto/{symbol}"])
     fun getCrypto(
         @PathVariable symbol: String,
-        @RequestParam(required = false) isBaseCrypto: Boolean = false
+        @RequestParam(required = false) baseCurrency: String = "USD"
     ): ResponseEntity<*> {
         val crypto = cryptoCurrancyRepository.findLatestBySymbol(symbol) ?: return ResponseEntity.status(
             HttpStatus.NOT_FOUND
@@ -61,13 +64,13 @@ class CryptoApiControllers(
                     "$symbol not found"
                 )
             )
-        if (isBaseCrypto) {
-            val cryptoBase = cryptoCurrancyRepository.findLatestBySymbol("btc") ?: return ResponseEntity.status(
+        if (baseCurrency != "USD") {
+            val cryptoBase = cryptoFiatRepository.findLastRate(baseCurrency) ?: return ResponseEntity.status(
                 HttpStatus.INTERNAL_SERVER_ERROR
             ).body(
                 ApiError.InternalServerError()
             )
-            val baseRate = crypto.current_price / cryptoBase.current_price
+            val baseRate = crypto.current_price / cryptoBase.rate
             val returnCrypto = crypto.copy(current_price = baseRate)
             returnCrypto.id = crypto.id
             return ResponseEntity.ok(returnCrypto)
@@ -80,7 +83,7 @@ class CryptoApiControllers(
     fun getCryptoByDate(
         @PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") date: String,
         @RequestParam(required = false) symbol: String? = null,
-        @RequestParam(required = false) isBaseCrypto: Boolean = false
+        @RequestParam(required = false) baseCurrency: String = "USD"
     ): ResponseEntity<*> {
         val dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy")
         try {
@@ -95,8 +98,8 @@ class CryptoApiControllers(
                                 "Crypto was not found by date=$date"
                             )
                         )
-            return if (isBaseCrypto)
-                ResponseEntity.ok(getBaseCrypto(cryptos))
+            return if (baseCurrency != "USD")
+                ResponseEntity.ok(getBaseCrypto(cryptos, baseCurrency))
             else
                 ResponseEntity.ok(cryptos)
         } catch (e: DateTimeParseException) {
@@ -115,7 +118,7 @@ class CryptoApiControllers(
         @RequestParam @DateTimeFormat(pattern = "dd-MM-yyyy") startDate: String,
         @RequestParam @DateTimeFormat(pattern = "dd-MM-yyyy") endDate: String,
         @RequestParam(required = false) symbol: String? = null,
-        @RequestParam(required = false) isBaseCrypto: Boolean = false
+        @RequestParam(required = false) baseCurrency: String = "USD"
     ): ResponseEntity<*> {
         val dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy")
         try {
@@ -132,8 +135,8 @@ class CryptoApiControllers(
                             "Crypto was not found by dateStart=$startDate nor dateEnd=$endDate "
                         )
                     )
-            return if (isBaseCrypto) {
-                ResponseEntity.ok(getBaseCrypto(cryptos))
+            return if (baseCurrency != "USD") {
+                ResponseEntity.ok(getBaseCrypto(cryptos, baseCurrency))
             } else {
                 ResponseEntity.ok(cryptos)
             }
