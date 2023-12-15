@@ -26,48 +26,68 @@ class CurrencyApiControllers(
     fun getPages() = "Welcome"
 
     @GetMapping(value = ["/latest"])
-    fun getRates() = currencyRatesRepository.findLatestRate()
+    fun getRates(@RequestParam(required = false) baseCurrency: String = "USD"): ResponseEntity<*> {
+        val currancyList = currencyRatesRepository.findLatestRate()
+        val baseRateCurrancyList =
+            getBaseCurrancyList(currancyList, baseCurrency) ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(
+                    ApiError.NotFound(
+                        System.currentTimeMillis(),
+                        "Currency was not found by base currency=$baseCurrency"
+                    )
+                )
+        return ResponseEntity.ok(baseRateCurrancyList)
+    }
 
     @GetMapping(value = ["/latest/{symbol}"])
-    fun getRatesBySymbol(@PathVariable symbol: String): ResponseEntity<*> {
-        val rates: CurrencyRate? = currencyRatesRepository.findRateBySymbol(symbol)
-        return if (rates != null) {
-            ResponseEntity.ok(rates)
+    fun getRatesBySymbol(
+        @PathVariable symbol: String,
+        @RequestParam(required = false) baseCurrency: String = "USD"
+    ): ResponseEntity<*> {
+        val rate: CurrencyRate? = currencyRatesRepository.findRateBySymbol(symbol)
+        val rateBase = currencyRatesRepository.findRateBySymbol(baseCurrency)
+        return if (rate != null && rateBase != null) {
+            val currencyRate = rate.rate / rateBase.rate
+            val convertRate = rate.copy(rate = currencyRate)
+            ResponseEntity.ok(convertRate)
         } else {
-            val errorMessage = "Currency was not found by symbol=$symbol"
+            val errorMessage = "Currency was not found by symbol=$symbol or baseCurrency=$symbol"
             ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiError.NotFound(System.currentTimeMillis(), HttpStatus.NOT_FOUND, errorMessage))
+                .body(ApiError.NotFound(System.currentTimeMillis(), errorMessage))
         }
     }
 
     @GetMapping(value = ["/historical/{date}"])
     fun getRatesByDate(
         @PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") date: String,
-        @RequestParam(required = false) symbol: String? = null
+        @RequestParam(required = false) symbol: String? = null,
+        @RequestParam(required = false) baseCurrency: String = "USD"
     ): ResponseEntity<*> {
         val dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy")
         try {
             val parsed = LocalDate.parse(date, dateFormat)
             val timestamp = parsed.atStartOfDay().toInstant(ZoneOffset.UTC).epochSecond
-            val rates: List<CurrencyRate>? = currencyRatesRepository.findRateByDate(timestamp, symbol)
-            return if (rates != null) {
-                ResponseEntity.ok(rates)
-            } else {
-                ResponseEntity.status(HttpStatus.NOT_FOUND)
+            val rates: List<CurrencyRate> = currencyRatesRepository.findRateByDate(timestamp, symbol)
+                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(
                         ApiError.NotFound(
                             System.currentTimeMillis(),
-                            HttpStatus.NOT_FOUND,
                             "Currency was not found by date=$date"
                         )
                     )
-            }
+            val baseRateCurrancyList =
+                getBaseCurrancyList(rates, baseCurrency) ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiError.NotFound(
+                        System.currentTimeMillis(),
+                        "Currency was not found by base currency=$baseCurrency"
+                    )
+                )
+            return ResponseEntity.ok(baseRateCurrancyList)
         } catch (e: DateTimeParseException) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(
                     ApiError.BadRequest(
                         System.currentTimeMillis(),
-                        HttpStatus.BAD_REQUEST,
                         "Incorrect date, the format is dd-MM-yyyy"
                     )
                 )
@@ -78,7 +98,8 @@ class CurrencyApiControllers(
     fun getTimeSeries(
         @RequestParam @DateTimeFormat(pattern = "dd-MM-yyyy") startDate: String,
         @RequestParam @DateTimeFormat(pattern = "dd-MM-yyyy") endDate: String,
-        @RequestParam(required = false) symbol: String? = null
+        @RequestParam(required = false) symbol: String? = null,
+        @RequestParam(required = false) baseCurrency: String = "USD"
     ): ResponseEntity<*> {
         val dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy")
         try {
@@ -86,25 +107,28 @@ class CurrencyApiControllers(
             val parsedEnd = LocalDate.parse(endDate, dateFormat)
             val timestampStart = parsedStart.atStartOfDay().toInstant(ZoneOffset.UTC).epochSecond
             val timestampEnd = parsedEnd.atStartOfDay().toInstant(ZoneOffset.UTC).epochSecond
-            val rates: List<CurrencyRate>? = currencyRatesRepository.findRateByRangeDate(timestampStart, timestampEnd, symbol)
-            return if (rates != null) {
-                ResponseEntity.ok(rates)
-            } else {
-                ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(
-                        ApiError.NotFound(
-                            System.currentTimeMillis(),
-                            HttpStatus.NOT_FOUND,
-                            "Currency was not found by dateStart=$startDate nor dateEnd=$endDate "
+            val rates: List<CurrencyRate> =
+                currencyRatesRepository.findRateByRangeDate(timestampStart, timestampEnd, symbol)
+                    ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(
+                            ApiError.NotFound(
+                                System.currentTimeMillis(),
+                                "Currency was not found by dateStart=$startDate nor dateEnd=$endDate "
+                            )
                         )
+            val baseRateCurrancyList =
+                getBaseCurrancyList(rates, baseCurrency) ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiError.NotFound(
+                        System.currentTimeMillis(),
+                        "Currency was not found by base currency=$baseCurrency"
                     )
-            }
+                )
+            return ResponseEntity.ok(baseRateCurrancyList)
         } catch (e: DateTimeParseException) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(
                     ApiError.BadRequest(
                         System.currentTimeMillis(),
-                        HttpStatus.BAD_REQUEST,
                         "Incorrect date, the format is dd-MM-yyyy"
                     )
                 )
@@ -113,5 +137,17 @@ class CurrencyApiControllers(
 
     @GetMapping(value = ["/error"])
     fun getError() = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiError.Unexpected())
+
+    fun getBaseCurrancyList(currancyList: List<CurrencyRate>?, baseCurrancy: String): List<CurrencyRate>? {
+        val baseRateCurrancy = currencyRatesRepository.findRateBySymbol(baseCurrancy) ?: return null
+        val listBaseCurranies = mutableListOf<CurrencyRate>()
+        currancyList?.forEach { currency ->
+            val currencyRate = currency.rate / baseRateCurrancy.rate
+            listBaseCurranies.add(
+               currency.copy(rate = currencyRate)
+            )
+        }
+        return listBaseCurranies
+    }
 
 }

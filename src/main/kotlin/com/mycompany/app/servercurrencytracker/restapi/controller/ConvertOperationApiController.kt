@@ -26,7 +26,6 @@ class ConvertOperationApiController(
                 .body(
                     ApiError.BadRequest(
                         System.currentTimeMillis(),
-                        HttpStatus.BAD_REQUEST,
                         "Some value is null"
                     )
                 )
@@ -37,7 +36,6 @@ class ConvertOperationApiController(
                 .body(
                     ApiError.BadRequest(
                         System.currentTimeMillis(),
-                        HttpStatus.BAD_REQUEST,
                         "\"From\" is inncorect"
                     )
                 )
@@ -46,7 +44,6 @@ class ConvertOperationApiController(
                 .body(
                     ApiError.BadRequest(
                         System.currentTimeMillis(),
-                        HttpStatus.BAD_REQUEST,
                         "\"To\" is inncorect"
                     )
                 )
