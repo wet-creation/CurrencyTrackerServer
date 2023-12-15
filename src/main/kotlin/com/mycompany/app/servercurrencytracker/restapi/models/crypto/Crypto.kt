@@ -20,6 +20,6 @@ data class Crypto(
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    val id: String = ""
+    var id: String = ""
     constructor(): this("","",0.0,"",0,0)
 }

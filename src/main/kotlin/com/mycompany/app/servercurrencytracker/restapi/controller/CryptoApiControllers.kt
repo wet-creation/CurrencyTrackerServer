@@ -40,7 +40,9 @@ class CryptoApiControllers(
         val baseList = mutableListOf<Crypto>()
         cryptoList.forEach { crypto ->
             val baseRate = crypto.current_price / base.current_price
-            baseList.add(crypto.copy(current_price = baseRate))
+            val baserCrypto = crypto.copy(current_price = baseRate)
+            baserCrypto.id = crypto.id
+            baseList.add(baserCrypto)
         }
         return baseList
     }
@@ -66,7 +68,9 @@ class CryptoApiControllers(
                 ApiError.InternalServerError()
             )
             val baseRate = crypto.current_price / cryptoBase.current_price
-            return ResponseEntity.ok(crypto.copy(current_price = baseRate))
+            val returnCrypto = crypto.copy(current_price = baseRate)
+            returnCrypto.id = crypto.id
+            return ResponseEntity.ok(returnCrypto)
         }
         return ResponseEntity.ok(crypto)
 
