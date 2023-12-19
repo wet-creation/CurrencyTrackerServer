@@ -46,23 +46,37 @@ class Jobs(
 
     @Scheduled(cron = "\${getAndPutCurrancyNames.delay}")
     fun getAndPutCurrancyNames() {
-        val currenciesName = openExchangeRatesApi.getCurrenciesName().execute()
-        "Get Currency Names at ${Date()}"
-        currenciesRepository.saveAll(currenciesName.body()!!.toCurrenciesName())
+        val currenciesName = openExchangeRatesApi.getCurrenciesName().execute().body()
+        if (currenciesName == null) {
+            println("Couldn't get currency Names at ${Date()}")
+            return
+        }
+        println("Get Currency Names at ${Date()}")
+        currenciesRepository.saveAll(currenciesName.toCurrenciesName())
     }
+
     @Scheduled(cron = "\${getAndPutRates.delay}")
     fun getAndPutRates() {
         val currenciesResponse = openExchangeRatesApi.getCurrenciesLatest().execute()
-        val currencies = currenciesResponse.body()!!
+        val currencies = currenciesResponse.body()
+        if (currencies == null) {
+            println("Couldn't get Currency Rates and Put at ${Date()}")
+            return
+        }
         val modifiedRates = currencies.rates.mapValues { (_, value) -> 1.0 / value }
         val modifiedLatest = currencies.copy(rates = modifiedRates)
         println("Get Currency Rates and Put at ${Date()}")
         ratesRepository.saveAll(modifiedLatest.toRate())
     }
+
     @Scheduled(cron = "\${getAndPutCrypto.delay}")
-    fun getAndPutCrypto(){
+    fun getAndPutCrypto() {
         val cryptoResponse = geckoApi.getCoins("USD").execute()
-        val cryptoList = cryptoResponse.body()!!
+        val cryptoList = cryptoResponse.body()
+        if (cryptoList == null) {
+            println("Couldn't get Crypto Rates and Put at ${Date()}")
+            return
+        }
         println("Get Crypto Rates and Put at ${Date()}")
         cryptoRepository.saveAll(cryptoList.map { it.toCryptoDetails() })
 
