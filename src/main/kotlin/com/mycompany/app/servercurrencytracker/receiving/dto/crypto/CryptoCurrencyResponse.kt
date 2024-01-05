@@ -31,7 +31,7 @@ data class CryptoCurrencyResponse(
     val roi: Any,
     val symbol: String,
     val total_supply: Double?,
-    val total_volume: Long
+    val total_volume: Long,
 ) {
     fun toCryptoDetails(): Crypto {
         val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
@@ -55,7 +55,10 @@ data class CryptoCurrencyResponse(
             ath,
             timestampAth,
             atl,
-            timestampAtl
+            timestampAtl,
+            current_price-price_change_24h,
+            null,
+            null
         )
     }
 

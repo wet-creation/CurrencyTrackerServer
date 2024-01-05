@@ -17,7 +17,13 @@ data class CurrencyRate(
     @Column
     val rate: Double,
     @Column
-    var name: String
-){
-    constructor() : this(0,"",0,0.0,"")
+    var name: String,
+    @Column(nullable = true)
+    val _24h: Double?,
+    @Column(nullable = true)
+    val _7d: Double?,
+    @Column(nullable = true)
+    val _1m: Double?,
+) {
+    constructor() : this(0, "", 0, 0.0, "", null, null, null)
 }

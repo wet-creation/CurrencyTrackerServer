@@ -10,10 +10,11 @@ interface CryptoCurrancyRepository : JpaRepository<Crypto, String> {
 
     @Query("SELECT c FROM Crypto c WHERE (c.market_cap_rank, c.last_updated) IN (SELECT cr.market_cap_rank, MAX(cr.last_updated) FROM Crypto cr GROUP BY cr.market_cap_rank)")
     fun findLatest(): List<Crypto>?
-
+    @Query(value = "SELECT avg(current_price) FROM crypto WHERE last_updated >= ?1 - 10800 AND last_updated < ?1 + 10800 and symbol = ?2", nativeQuery = true)
+    fun getAvgBySymbolAndDate(timestamp: Long, symbol: String) : Double?
     @Query(value = "SELECT * FROM crypto WHERE last_updated >= ?1 AND last_updated < ?1 + 86400 and (?2 IS NULL OR symbol = ?2)", nativeQuery = true)
-    fun findCryptoByDate(timestamp: Long, symbol: String? = null) : List<Crypto>?
+    fun findByDate(timestamp: Long, symbol: String? = null) : List<Crypto>?
     @Query(value = "SELECT * FROM crypto WHERE last_updated >=?1 and last_updated <?2 + 86400 AND (?3 IS NULL OR symbol = ?3)", nativeQuery = true)
-    fun findCryptoByRangeDate(timestampStart: Long, timestampEnd: Long, symbol: String? = null): List<Crypto>?
+    fun findByRangeDate(timestampStart: Long, timestampEnd: Long, symbol: String? = null): List<Crypto>?
 
 }

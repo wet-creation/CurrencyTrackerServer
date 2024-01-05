@@ -29,8 +29,8 @@ class ConvertOperationApiController(
                         "Some value is null"
                     )
                 )
-        val lastRateFrom = cryptoFiatRateRepository.findLastRate(from)
-        val lastRateTo = cryptoFiatRateRepository.findLastRate(to)
+        val lastRateFrom = cryptoFiatRateRepository.findLatest(from)
+        val lastRateTo = cryptoFiatRateRepository.findLatest(to)
         val rateFrom =
             lastRateFrom?.rate ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(

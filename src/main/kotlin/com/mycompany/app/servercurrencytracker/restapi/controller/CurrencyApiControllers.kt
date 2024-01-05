@@ -48,7 +48,7 @@ class CurrencyApiControllers(
         @RequestParam(required = false) baseCurrency: String = "USD"
     ): ResponseEntity<*> {
         val rate: CurrencyRate? = currencyRatesRepository.findRateBySymbol(symbol)
-        val rateBase = cryptoFiatRepository.findLastRate(baseCurrency)
+        val rateBase = cryptoFiatRepository.findLatest(baseCurrency)
         return if (rate != null && rateBase != null) {
             val currencyRate = rate.rate / rateBase.rate
             val convertRate = rate.copy(rate = currencyRate)
@@ -142,7 +142,7 @@ class CurrencyApiControllers(
     fun getError() = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiError.Unexpected())
 
     fun getBaseCurrancyList(currancyList: List<CurrencyRate>?, baseCurrancy: String): List<CurrencyRate>? {
-        val baseRateCurrancy = cryptoFiatRepository.findLastRate(baseCurrancy) ?: return null
+        val baseRateCurrancy = cryptoFiatRepository.findLatest(baseCurrancy) ?: return null
         val listBaseCurranies = mutableListOf<CurrencyRate>()
         currancyList?.forEach { currency ->
             val currencyRate = currency.rate / baseRateCurrancy.rate

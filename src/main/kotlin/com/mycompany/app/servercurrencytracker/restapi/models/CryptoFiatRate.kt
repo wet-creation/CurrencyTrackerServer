@@ -13,7 +13,7 @@ data class CryptoFiatRate(
     @Column
     val timestamp: Long,
     @Column
-    val rate: Double
+    val rate: Double,
 ) {
     constructor() : this("", 0, 0.0)
 }

@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.Query
 interface CryptoFiatRepository : JpaRepository<CryptoFiatRate, String> {
 
     @Query(value = "SELECT * FROM crypto_fiat_rate_view WHERE symbol COLLATE utf8mb4_bin = ?", nativeQuery = true)
-    fun findLastRate(symbol: String): CryptoFiatRate?
+    fun findLatest(symbol: String): CryptoFiatRate?
 }

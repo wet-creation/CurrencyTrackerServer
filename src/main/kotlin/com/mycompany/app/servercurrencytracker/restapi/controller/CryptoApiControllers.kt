@@ -39,7 +39,7 @@ class CryptoApiControllers(
     }
 
     private fun getBaseCrypto(cryptoList: List<Crypto>, baseCurrency: String): List<Crypto>? {
-        val base = cryptoFiatRepository.findLastRate(baseCurrency) ?: return null
+        val base = cryptoFiatRepository.findLatest(baseCurrency) ?: return null
         val baseList = mutableListOf<Crypto>()
         cryptoList.forEach { crypto ->
             val baseRate = crypto.current_price / base.rate
@@ -73,7 +73,7 @@ class CryptoApiControllers(
                 )
             )
         if (baseCurrency != "USD") {
-            val cryptoBase = cryptoFiatRepository.findLastRate(baseCurrency) ?: return ResponseEntity.status(
+            val cryptoBase = cryptoFiatRepository.findLatest(baseCurrency) ?: return ResponseEntity.status(
                 HttpStatus.INTERNAL_SERVER_ERROR
             ).body(
                 ApiError.InternalServerError()
@@ -106,7 +106,7 @@ class CryptoApiControllers(
             val parsed = LocalDate.parse(date, dateFormat)
             val timestamp = parsed.atStartOfDay().toInstant(ZoneOffset.UTC).epochSecond
             val cryptos: List<Crypto> =
-                cryptoCurrancyRepository.findCryptoByDate(timestamp, symbol)?.sortedBy { it.last_updated }
+                cryptoCurrancyRepository.findByDate(timestamp, symbol)?.sortedBy { it.last_updated }
                     ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(
                             ApiError.NotFound(
@@ -143,7 +143,7 @@ class CryptoApiControllers(
             val timestampStart = parsedStart.atStartOfDay().toInstant(ZoneOffset.UTC).epochSecond
             val timestampEnd = parsedEnd.atStartOfDay().toInstant(ZoneOffset.UTC).epochSecond
             val cryptos: List<Crypto> =
-                cryptoCurrancyRepository.findCryptoByRangeDate(timestampStart, timestampEnd, symbol)
+                cryptoCurrancyRepository.findByRangeDate(timestampStart, timestampEnd, symbol)
                     ?.sortedBy { it.last_updated } ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(
                         ApiError.NotFound(
