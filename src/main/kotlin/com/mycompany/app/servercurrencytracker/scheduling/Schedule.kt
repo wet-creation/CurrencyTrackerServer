@@ -8,7 +8,6 @@ import com.mycompany.app.servercurrencytracker.restapi.models.currancy.toRate
 import com.mycompany.app.servercurrencytracker.restapi.repositories.crypto.CryptoCurrancyRepository
 import com.mycompany.app.servercurrencytracker.restapi.repositories.currancy.CurrencyNameRepository
 import com.mycompany.app.servercurrencytracker.restapi.repositories.currancy.RatesRepository
-import okhttp3.CacheControl
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -31,7 +30,7 @@ class Schedule
 
 @Component
 class Jobs(
-    @Autowired
+    @Autowired   
     val ratesRepository: RatesRepository,
     @Autowired
     val currenciesRepository: CurrencyNameRepository,
@@ -57,7 +56,7 @@ class Jobs(
         .create(GeckoApi::class.java)
 
     @Scheduled(cron = "\${getAndPutCurrancyNames.delay}")
-    fun getAndPutCurrancyNames() {
+    fun getAndPutCurrencyNames() {
         val currenciesName = openExchangeRatesApi.getCurrenciesName().execute().body()
         if (currenciesName == null) {
             println("Couldn't get currency Names at ${Date()}")
